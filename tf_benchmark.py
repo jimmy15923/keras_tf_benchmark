@@ -34,22 +34,14 @@ iterator = dataset.make_initializable_iterator()
 inputs, labels = iterator.get_next()
 
 # build model
-if FLAGS.model == "resnet50":
+if FLAGS.model == "slim":
+    print("Slim model")
     with slim.arg_scope(slimNet.resnet_utils.resnet_arg_scope(batch_norm_decay=0.99)):
         _, layers_dict = slimNet.resnet_v2.resnet_v2_50(inputs, num_classes=1000, global_pool=True, is_training=True)
         logits = layers_dict['resnet_v2_50/logits']
         logits = tf.keras.layers.Flatten()(logits)
         loss = tf.losses.softmax_cross_entropy(onehot_labels=labels,
-                                       logits=logits)
-        
-elif FLAGS.model == "googlenet":
-    with slim.arg_scope(slimNet.inception.inception_v1_arg_scope()):
-        _, layers_dict = slimNet.inception.inception_v1(inputs, spatial_squeeze=False, num_classes=1000, is_training=True)
-        fmap = layers_dict['Logits']
-        output = tf.keras.layers.GlobalAveragePooling2D()(fmap)
-        logits = tf.keras.layers.Dense(1000)(output)
-        loss = tf.losses.softmax_cross_entropy(onehot_labels=labels,
-                                       logits=logits)
+                                       logits=logits)       
 else:
     keras_model = tf.keras.applications.resnet50.ResNet50(input_shape=(FLAGS.image_size, FLAGS.image_size, 3), weights=None)
     output = keras_model(inputs)
